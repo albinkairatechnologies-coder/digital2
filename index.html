@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Digital Health Check — Kaira Technologies</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,600;9..144,0,900;9..144,1,500&family=Spectral:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root{
+    --brick:#8c2f1c;--brick-deep:#6e2113;--ochre:#c8893f;--ochre-soft:#e9c188;
+    --cream:#f7f1e6;--paper:#fbf7ee;--ink:#2b2420;--muted:#6c5f53;--line:#e8dcc7;
+    --green:#3f8f4e;--amber:#d9962b;--red:#c0392b;
+    --shadow:0 10px 30px rgba(110,33,19,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Spectral',Georgia,serif;color:var(--ink);
+    background:
+      radial-gradient(130% 70% at 100% -10%,rgba(200,137,63,.16),transparent 55%),
+      radial-gradient(100% 60% at -10% 110%,rgba(140,47,28,.08),transparent 50%),
+      var(--paper);
+    min-height:100vh;padding:22px;line-height:1.5;}
+  .wrap{max-width:1080px;margin:0 auto;}
+
+  /* hero header */
+  .top{background:linear-gradient(135deg,var(--brick),var(--brick-deep));color:var(--cream);
+    border-radius:18px;padding:30px 34px;position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(110,33,19,.30);}
+  .top::before{content:"";position:absolute;inset:0;
+    background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:7px 7px;}
+  .top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;
+    background:linear-gradient(90deg,var(--ochre),var(--ochre-soft),var(--ochre));}
+  .logo{font-family:'Fraunces',serif;font-weight:900;font-size:32px;line-height:1;position:relative;}
+  .logo span{color:var(--ochre);}
+  .top h1{font-family:'Fraunces',serif;font-weight:600;font-size:24px;margin-top:14px;position:relative;max-width:22ch;}
+  .top p{margin-top:8px;font-size:14.5px;color:#f0d6bb;max-width:58ch;position:relative;}
+  .badges{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;position:relative;}
+  .badge{font-size:11.5px;letter-spacing:.5px;background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.18);padding:5px 11px;border-radius:20px;color:#f7e6d2;}
+
+  .grid{display:grid;grid-template-columns:370px 1fr;gap:22px;margin-top:22px;}
+  @media(max-width:900px){.grid{grid-template-columns:1fr;}}
+  @media(min-width:901px){
+    .grid > .card:first-of-type {
+      position: sticky;
+      top: 22px;
+      align-self: start;
+    }
+  }
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);}
+  .card-h{font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--brick);padding:17px 22px;border-bottom:1px solid var(--line);}
+  .card-b{padding:20px 22px;}
+  label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin:15px 0 6px;}
+  label:first-of-type{margin-top:0;}
+  label .req{color:var(--brick);}
+  input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-family:'Spectral',serif;font-size:14.5px;color:var(--ink);background:var(--paper);transition:.15s;}
+  input:focus{outline:none;border-color:var(--ochre);background:#fff;box-shadow:0 0 0 3px rgba(200,137,63,.15);}
+  .btn{width:100%;margin-top:22px;padding:15px;border:none;border-radius:11px;cursor:pointer;
+    background:var(--brick);color:var(--cream);font-family:'Fraunces',serif;font-weight:600;font-size:16px;letter-spacing:.4px;transition:.15s;}
+  .btn:hover{background:var(--brick-deep);transform:translateY(-1px);}
+  .btn:disabled{opacity:.6;cursor:wait;transform:none;}
+  .ghost{display:block;width:100%;margin-top:11px;background:none;border:none;color:var(--ochre);
+    font-family:'Spectral',serif;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+  .ghost:hover{color:var(--brick);}
+
+  #out{min-height:200px;overflow:hidden;}
+  .placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:360px;color:var(--muted);text-align:center;padding:34px;}
+  .placeholder .big{font-family:'Fraunces',serif;font-size:54px;color:var(--line);font-weight:900;}
+  .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:360px;gap:18px;color:var(--brick);}
+  .spin{width:42px;height:42px;border:4px solid var(--line);border-top-color:var(--ochre);border-radius:50%;animation:s 1s linear infinite;}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .lmsg{font-family:'Fraunces',serif;font-size:15.5px;}
+
+  /* ---- report ---- */
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .rev{opacity:0;animation:rise .55s cubic-bezier(.2,.7,.3,1) forwards;}
+
+  .hero{display:flex;align-items:center;gap:24px;padding:24px;
+    background:linear-gradient(135deg,rgba(200,137,63,.13),rgba(140,47,28,.04));border-bottom:1px solid var(--line);}
+  @media(max-width:520px){.hero{flex-direction:column;text-align:center;gap:16px;}}
+  .gauge{position:relative;width:128px;height:128px;flex-shrink:0;}
+  .gauge svg{transform:rotate(-90deg);}
+  .gauge .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .gauge .num b{font-family:'Fraunces',serif;font-weight:900;font-size:38px;line-height:1;}
+  .gauge .num small{font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+  .g-track{fill:none;stroke:var(--line);stroke-width:11;}
+  .g-fill{fill:none;stroke-width:11;stroke-linecap:round;transition:stroke-dashoffset 1.3s cubic-bezier(.2,.7,.2,1);}
+  .grade-pill{display:inline-block;font-family:'Fraunces',serif;font-weight:700;font-size:13px;
+    padding:5px 14px;border-radius:30px;color:#fff;letter-spacing:.3px;}
+  .hero h2{font-family:'Fraunces',serif;font-weight:600;font-size:19px;margin:10px 0 0;line-height:1.3;}
+  .biz-line{font-size:12.5px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;}
+
+  .summary{padding:18px 24px;font-size:14.5px;line-height:1.62;color:var(--ink);border-bottom:1px solid var(--line);}
+  .compete{margin:0 24px 18px;margin-top:-4px;padding:13px 16px;border-radius:10px;
+    background:rgba(192,57,43,.07);border-left:4px solid var(--red);font-size:13.5px;color:#7d2118;display:flex;gap:10px;align-items:flex-start;}
+  .compete svg{flex-shrink:0;margin-top:1px;}
+
+  .sect{padding:6px 24px 4px;}
+  .sect-t{font-family:'Fraunces',serif;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--ochre);font-weight:600;margin:16px 0 12px;}
+
+  .cat{border:1px solid var(--line);border-radius:13px;padding:15px 16px;margin-bottom:12px;background:linear-gradient(180deg,#fff,#fffdf9);}
+  .cat-top{display:flex;align-items:center;gap:11px;}
+  .cat-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;}
+  .cat-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+  .cat-name{font-family:'Fraunces',serif;font-weight:600;font-size:15px;flex:1;}
+  .chip{font-size:10.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:4px 10px;border-radius:20px;color:#fff;}
+  .bar{height:6px;border-radius:6px;background:var(--line);margin:12px 0 13px;overflow:hidden;}
+  .bar i{display:block;height:100%;border-radius:6px;width:0;transition:width 1s cubic-bezier(.2,.7,.2,1);}
+  .lines{display:grid;gap:8px;}
+  .ln{display:grid;grid-template-columns:88px 1fr;gap:10px;font-size:13.3px;line-height:1.45;}
+  .ln .lk{font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding-top:2px;}
+  .ln.fix .lk{color:var(--brick);}
+  .ln.fix span{font-weight:500;}
+
+  .plan{counter-reset:p;}
+  .pa{display:flex;align-items:center;gap:13px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:#fff;}
+  .pa-n{width:30px;height:30px;border-radius:50%;background:var(--brick);color:#fff;font-family:'Fraunces',serif;font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .pa-txt{flex:1;font-size:13.6px;line-height:1.4;}
+  .tags{display:flex;gap:6px;flex-shrink:0;}
+  .tag{font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;padding:3px 8px;border-radius:14px;white-space:nowrap;}
+  @media(max-width:560px){.pa{flex-wrap:wrap;}.tags{width:100%;margin-left:43px;}}
+
+  .win{margin:6px 24px 0;padding:17px 18px;border-radius:13px;background:linear-gradient(135deg,var(--brick),var(--brick-deep));color:var(--cream);position:relative;overflow:hidden;}
+  .win::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(200,137,63,.18);}
+  .win .k{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--ochre-soft);position:relative;}
+  .win .t{font-family:'Fraunces',serif;font-size:16px;margin-top:6px;line-height:1.4;position:relative;}
+
+  .opp{margin:16px 24px 4px;padding:14px 16px;border:1px dashed var(--green);border-radius:12px;background:rgba(63,143,78,.06);font-size:13.6px;color:#27562f;font-style:italic;font-family:'Fraunces',serif;}
+
+  .cta{margin:14px 24px 0;padding:16px;border-radius:13px;text-align:center;background:var(--cream);border:1px solid var(--line);}
+  .cta .h{font-family:'Fraunces',serif;font-size:16px;color:var(--brick);}
+  .cta .s{font-size:13px;color:var(--muted);margin-top:3px;}
+
+  .copybar{display:flex;gap:10px;padding:16px 24px 22px;}
+  .copybtn{flex:1;padding:13px;border:1px solid var(--ochre);background:#fff;color:var(--brick);border-radius:10px;cursor:pointer;font-family:'Fraunces',serif;font-weight:600;font-size:14px;transition:.15s;}
+  .copybtn:hover{background:var(--ochre);color:#fff;}
+  .copybtn.ok{background:var(--green);color:#fff;border-color:var(--green);}
+  .err{padding:34px;color:var(--red);text-align:center;font-size:14px;line-height:1.6;}
+
+  /* PDF printing overrides */
+  body.pdf-printing {
+    background: #fbf7ee !important;
+  }
+  body.pdf-printing .wrap {
+    max-width: 800px !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+  }
+  body.pdf-printing .grid {
+    display: block !important;
+  }
+  body.pdf-printing .grid > .card:first-of-type {
+    display: none !important; /* Hide input form */
+  }
+  body.pdf-printing .grid > .card:last-of-type {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  body.pdf-printing .copybar {
+    display: none !important; /* Hide buttons */
+  }
+  body.pdf-printing .rev {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+  body.pdf-printing .bar i {
+    transition: none !important;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="logo" style="background: rgba(255, 255, 255, 0.95); padding: 6px 14px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 12px;">
+      <img src="logo.png" alt="KAIRA" style="height: 42px; display: block;">
+    </div>
+    <h1>Free Digital Health Check</h1>
+    <p>See exactly where your business stands online — your score, what's costing you customers, and the steps to get found first. In under a minute.</p>
+    <div class="badges">
+      <span class="badge">📍 Google ranking</span>
+      <span class="badge">⭐ Reviews</span>
+      <span class="badge">🌐 Website</span>
+      <span class="badge">📣 Social &amp; ads</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-h">Tell us about your business</div>
+      <div class="card-b">
+        <label>Business Name <span class="req">*</span></label>
+        <input id="name" placeholder="e.g. Sri Lakshmi Sweets">
+        <label>Business Type <span class="req">*</span></label>
+        <input id="cat" placeholder="e.g. Sweet shop / Dentist / Boutique">
+        <label>Town / City <span class="req">*</span></label>
+        <input id="town" placeholder="e.g. Kovilpatti">
+        <label>Website (if any)</label>
+        <input id="web" placeholder="leave blank if none">
+        <label>Instagram / Facebook (if any)</label>
+        <input id="social" placeholder="@handle or page name">
+        <label>Phone (if any)</label>
+        <input id="phone" placeholder="optional">
+        <button class="btn" id="go" onclick="run()">Check My Business — Free</button>
+        <button class="ghost" onclick="render(SAMPLE)">See a sample report →</button>
+      </div>
+    </div>
+
+    <div class="card" id="out">
+      <div class="placeholder">
+        <div class="big">5:00</div>
+        <p style="margin-top:12px;font-size:15px;">Your detailed report will appear here.<br>Try <b>“See a sample report”</b> to preview it.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = window.location.protocol === 'file:' ? 'http://localhost:8000/api/health-check' : '/api/health-check';
+const loadMsgs = ["Looking up your Google profile…","Checking who ranks above you…","Reading your reviews & reputation…","Inspecting your website on mobile…","Scoring & writing your report…"];
+let report = null;
+
+const ICONS = [
+  '<path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/>',
+  '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  '<path d="M12 3l2.7 5.5 6 .9-4.3 4.2 1 6-5.4-2.8-5.4 2.8 1-6L3.3 9.4l6-.9z"/>',
+  '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  '<path d="M3 11v2a1 1 0 0 0 1 1h2l4 4V7L6 10H4a1 1 0 0 0-1 1z"/><path d="M14 7s3 1.4 3 5-3 5-3 5"/>'
+];
+
+function v(id){return document.getElementById(id).value.trim();}
+function color(s){return s==='green'?'var(--green)':s==='amber'?'var(--amber)':'var(--red)';}
+function band(sc){return sc>=70?'var(--green)':sc>=40?'var(--amber)':'var(--red)';}
+function chipLabel(s){return s==='green'?'Strong':s==='amber'?'Needs work':'Urgent';}
+function tagColor(val){
+  if(['High','Quick'].includes(val))return 'background:rgba(63,143,78,.14);color:#2c6638';
+  if(['Medium'].includes(val))return 'background:rgba(217,150,43,.16);color:#9a6712';
+  return 'background:rgba(192,57,43,.12);color:#a32d20';
+}
+
+async function run(){
+  const name=v('name'), cat=v('cat'), town=v('town');
+  if(!name||!cat||!town){alert("Please fill Business Name, Type and Town.");return;}
+  const btn=document.getElementById('go'); btn.disabled=true; btn.textContent="Checking…";
+  const out=document.getElementById('out');
+  out.innerHTML='<div class="loading"><div class="spin"></div><div class="lmsg" id="lm">Starting…</div></div>';
+  let i=0; const lm=document.getElementById('lm'); lm.textContent=loadMsgs[0];
+  const timer=setInterval(()=>{lm.textContent=loadMsgs[i%loadMsgs.length];i++;},2400);
+  try{
+    const res=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name,cat,town,web:v('web'),social:v('social'),phone:v('phone')})});
+    const data=await res.json(); clearInterval(timer);
+    if(!res.ok||data.error) throw new Error(data.error||("Server error "+res.status));
+    report=data; render(report);
+  }catch(e){
+    clearInterval(timer);
+    out.innerHTML='<div class="err">Sorry, we couldn\'t complete the check right now.<br><br>'+((e&&e.message)||e)+'<br><br>Please try again in a moment.</div>';
+  }
+  btn.disabled=false; btn.textContent="Check My Business — Free";
+}
+
+function render(r){
+  report=r;
+  const C=326.726; // 2*pi*52
+  const cats=r.categories.map((c,idx)=>{
+    let statsHtml = "";
+    if (c.name === "Social Media & Ads" && r.socialStats) {
+      const s = r.socialStats;
+      statsHtml = `
+        <div style="margin: 10px 0; padding: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 9px; font-size: 13px; font-family: 'Spectral', Georgia, serif;">
+          <div style="font-weight: 600; color: var(--brick); margin-bottom: 6px; font-size: 14px;">📊 ${s.platform} Details (@${s.handle})</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div><b>Followers</b>: ${s.followers} <span style="font-size:10px; font-weight:600; text-transform:uppercase; padding:2px 6px; border-radius:10px; ${tagColor(s.followersStatus)}">${s.followersStatus}</span></div>
+            <div><b>Following/Likes</b>: ${s.following} <span style="font-size:10px; font-weight:600; text-transform:uppercase; padding:2px 6px; border-radius:10px; background:rgba(63,143,78,.14); color:#2c6638;">${s.followingStatus}</span></div>
+            <div><b>Total Posts</b>: ${s.posts} <span style="font-size:10px; font-weight:600; text-transform:uppercase; padding:2px 6px; border-radius:10px; ${tagColor(s.postsStatus)}">${s.postsStatus}</span></div>
+            <div><b>Ratio / Status</b>: ${s.ratio} <span style="font-size:10px; font-weight:600; text-transform:uppercase; padding:2px 6px; border-radius:10px; background:rgba(63,143,78,.14); color:#2c6638;">${s.ratioStatus}</span></div>
+          </div>
+        </div>
+      `;
+    }
+    return `
+    <div class="cat rev" style="animation-delay:${.15+idx*.08}s">
+      <div class="cat-top">
+        <div class="cat-ic" style="background:${color(c.status)}"><svg viewBox="0 0 24 24">${ICONS[idx]||ICONS[0]}</svg></div>
+        <div class="cat-name">${c.name}</div>
+        <div class="chip" style="background:${color(c.status)}">${chipLabel(c.status)}</div>
+      </div>
+      <div class="bar"><i data-w="${c.score||0}" style="background:${band(c.score||0)}"></i></div>
+      ${statsHtml}
+      <div class="lines">
+        <div class="ln"><div class="lk">Found</div><span>${c.finding||''}</span></div>
+        <div class="ln"><div class="lk">Why it matters</div><span>${c.impact||''}</span></div>
+        <div class="ln fix"><div class="lk">Do this</div><span>${c.action||''}</span></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const plan=(r.priorityActions||[]).map(p=>`
+    <div class="pa rev" style="animation-delay:${.2+p.rank*.07}s">
+      <div class="pa-n">${p.rank}</div>
+      <div class="pa-txt">${p.action}</div>
+      <div class="tags">
+        <span class="tag" style="${tagColor(p.effort)}">${p.effort} effort</span>
+        <span class="tag" style="${tagColor(p.payoff)}">${p.payoff} payoff</span>
+      </div>
+    </div>`).join("");
+
+  document.getElementById('out').innerHTML=`
+    <div class="hero rev">
+      <div class="gauge">
+        <svg width="128" height="128" viewBox="0 0 120 120">
+          <circle class="g-track" cx="60" cy="60" r="52"></circle>
+          <circle id="gf" class="g-fill" cx="60" cy="60" r="52" stroke="${band(r.overallScore)}"
+            stroke-dasharray="${C}" stroke-dashoffset="${C}"></circle>
+        </svg>
+        <div class="num"><b id="gn" style="color:${band(r.overallScore)}">0</b><small>OUT OF 100</small></div>
+      </div>
+      <div>
+        <span class="grade-pill" style="background:${band(r.overallScore)}">${r.grade}</span>
+        <h2>${r.headline}</h2>
+        <div class="biz-line" style="margin-top:8px">${r._biz?r._biz.name+' · '+r._biz.town:''}</div>
+      </div>
+    </div>
+    <div class="summary rev" style="animation-delay:.1s">${r.summary}</div>
+    ${r.competitorNote?`<div class="compete rev" style="animation-delay:.12s"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div>${r.competitorNote}</div></div>`:''}
+
+    <div class="sect"><div class="sect-t">Your 5-point breakdown</div>${cats}</div>
+    ${plan?`<div class="sect plan"><div class="sect-t">Your action plan — start here</div>${plan}</div>`:''}
+
+    <div class="win rev" style="animation-delay:.3s"><div class="k">⭐ Your #1 quick win</div><div class="t">${r.quickWin}</div></div>
+    ${r.opportunity?`<div class="opp rev" style="animation-delay:.34s">${r.opportunity}</div>`:''}
+
+    <div class="cta rev" style="animation-delay:.38s">
+      <div class="h">Want Kaira to fix all this for you?</div>
+      <div class="s">We get Tamil Nadu businesses to the top of Google. — Team Kaira, Kovilpatti</div>
+    </div>
+    <div class="copybar">
+      <button class="copybtn" id="pdfBtn" onclick="downloadPDF()">📄 Download PDF</button>
+      <button class="copybtn" id="shareBtn" onclick="shareReport()">📢 Share Report</button>
+    </div>`;
+
+  // animate gauge + number + bars
+  requestAnimationFrame(()=>{
+    const gf=document.getElementById('gf'); if(gf) gf.style.strokeDashoffset=(C*(1-(r.overallScore/100)));
+    const gn=document.getElementById('gn'); let n=0; const step=Math.max(1,Math.round(r.overallScore/40));
+    const t=setInterval(()=>{n+=step; if(n>=r.overallScore){n=r.overallScore;clearInterval(t);} if(gn)gn.textContent=n;},22);
+    document.querySelectorAll('.bar i').forEach(b=>{ setTimeout(()=>{b.style.width=b.dataset.w+'%';},250); });
+  });
+}
+
+function getReportText() {
+  const r = report;
+  if (!r) return "";
+  const icon = s => s === 'green' ? '🟢' : s === 'amber' ? '🟡' : '🔴';
+  const lines = r.categories.map(c => `${icon(c.status)} *${c.name}* (${c.score}/100)\n   ${c.finding} ➜ ${c.action}`).join("\n");
+  const plan = (r.priorityActions || []).map(p => `${p.rank}. ${p.action}`).join("\n");
+  return `*KAIRA TECHNOLOGIES* 📊
+_Your Digital Health Check_
+
+*${r._biz ? r._biz.name : 'Business'}*, ${r._biz ? r._biz.town : ''}
+Overall Score: *${r.overallScore}/100* — ${r.grade}
+
+${r.headline}
+
+${r.competitorNote ? '⚠️ ' + r.competitorNote + '\n\n' : ''}*BREAKDOWN*
+${lines}
+
+*ACTION PLAN*
+${plan}
+
+⭐ *QUICK WIN*: ${r.quickWin}
+
+${r.opportunity || ''}
+
+Want us to get you to the *top of Google*? Contact Team Kaira, Kovilpatti.`;
+}
+
+function downloadPDF() {
+  const btn = document.getElementById('pdfBtn');
+  btn.textContent = "Generating PDF...";
+  btn.disabled = true;
+
+  // Apply printing style overrides to the active page
+  document.body.classList.add('pdf-printing');
+
+  const element = document.querySelector('.wrap');
+  const opt = {
+    margin:       [15, 15, 15, 15],
+    filename:     `${report._biz ? report._biz.name.replace(/\s+/g, '_') : 'kaira'}_health_report.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    btn.textContent = "📄 Download PDF";
+    btn.disabled = false;
+    // Restore normal styles after saving is completed
+    document.body.classList.remove('pdf-printing');
+  }).catch(err => {
+    console.error("PDF generation error:", err);
+    btn.textContent = "📄 Download PDF";
+    btn.disabled = false;
+    document.body.classList.remove('pdf-printing');
+  });
+}
+
+function shareReport() {
+  const txt = getReportText();
+  const btn = document.getElementById('shareBtn');
+  if (navigator.share) {
+    navigator.share({
+      title: 'Digital Health Check - Kaira Technologies',
+      text: txt
+    }).then(() => {
+      btn.textContent = "✓ Shared!";
+      setTimeout(() => { btn.textContent = "📢 Share Report"; }, 2000);
+    }).catch(err => console.log('Error sharing:', err));
+  } else {
+    navigator.clipboard.writeText(txt).then(() => {
+      btn.textContent = "✓ Copied to Clipboard";
+      btn.classList.add('ok');
+      setTimeout(() => {
+        btn.textContent = "📢 Share Report";
+        btn.classList.remove('ok');
+      }, 2400);
+    });
+  }
+}
+
+// sample so you can preview the design without deploying
+const SAMPLE={overallScore:42,grade:"Getting There",
+ headline:"You're on the map — but competitors are quietly winning the customers searching for you.",
+ summary:"People around Kovilpatti search for sweet shops every single day, yet most of them find your competitors before they find you. A few focused fixes this month can put you right in front of them.",
+ competitorNote:"Right now, 3 other sweet shops appear above you when someone searches \"sweet shop Kovilpatti\".",
+ categories:[
+  {name:"Google Business Profile",status:"amber",score:55,finding:"Your profile exists but photos and timings look incomplete.",impact:"Customers skip shops that look inactive and pick one that looks open and busy.",action:"Add 10 fresh photos, fix your hours, and post a weekly offer."},
+  {name:"Search Ranking",status:"red",score:24,finding:"You don't appear on the first page for \"sweet shop Kovilpatti\".",impact:"You're invisible to most people searching for sweets near you right now.",action:"Optimise your profile and local keywords to climb into the top 3."},
+  {name:"Reviews & Reputation",status:"amber",score:47,finding:"12 reviews at 4.1 stars, and you rarely reply to them.",impact:"Shops with 100+ reviews look far more trusted and win the click.",action:"Ask happy customers for reviews and reply to every single one."},
+  {name:"Website",status:"red",score:18,finding:"No website found — only a social media page.",impact:"You lose customers who want to see your menu, prices, or order quickly.",action:"Launch a simple mobile site with click-to-call and WhatsApp ordering."},
+  {name:"Social Media & Ads",status:"green",score:71,finding:"Active Instagram with regular, attractive posts.",impact:"Great — this is already earning attention you can turn into sales.",action:"Add a small weekly ad budget to reach nearby customers directly."}],
+ priorityActions:[
+  {rank:1,action:"Get your Google profile into the top 3 for local searches.",effort:"Medium",payoff:"High"},
+  {rank:2,action:"Launch a simple mobile website with WhatsApp ordering.",effort:"Medium",payoff:"High"},
+  {rank:3,action:"Collect 30+ fresh Google reviews from happy customers.",effort:"Quick",payoff:"High"}],
+ quickWin:"Complete and optimise your Google Business Profile — it's the fastest way to start showing up when people search nearby.",
+ opportunity:"With focused work, businesses like yours typically reach the top 3 on Google within about 3 months.",
+ _biz:{name:"Sri Lakshmi Sweets",town:"Kovilpatti"},
+ socialStats:{platform:"Instagram",handle:"srilakshmisweets",followers:"3,657",followersStatus:"Moderate",following:"259",followingStatus:"Healthy",posts:"566",postsStatus:"Consistent",ratio:"~14:1",ratioStatus:"Good"}};
+</script>
+</body>
+</html>
